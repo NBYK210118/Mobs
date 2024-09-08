@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-primary;
+  }
+  .banner {
+    @apply font-title;
+  }
+  .board {
+    @apply border border-black;
+  }
+  .border-neutral-border-weak {
+    border-color: var(--color-neutral-border-weak);
+  }
+  .border-b-sm {
+    border-bottom-width: 0.0625rem;
+  }
+}
+
+@layer components {
+  .feed-ad-left {
+    @apply absolute invisible sm:visible md:left-0 lg:left-3 2xl:left-20 transition-all duration-700;
+  }
+  .feed-ad-right {
+    @apply absolute invisible sm:visible md:right-0 lg:right-1 xl:right-5 w-[100px] h-[250px] xl:w-[140px] xl:h-[350px] 2xl:w-[200px] 2xl:h-[500px] transition-all duration-700;
+  }
+  .transition-primary {
+    @apply transition-all ease-in-out duration-500;
+  }
+}

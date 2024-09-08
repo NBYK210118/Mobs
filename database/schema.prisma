@@ -1,0 +1,251 @@
+generator client {
+  provider = "prisma-client-js"
+
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+
+}
+
+enum ActivityType {
+  VOTE
+  COMMENT
+  POST
+}
+
+model Profile {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileImg String?
+  nickname String?
+  bio String?
+  level Int @default(1)
+  experience Int @default(0)
+  activities Activity[]
+  comments Comment[]
+  boards Board[]
+  videos Video[]
+  profileVoteOption ProfileVoteOption[]
+  likes Likes[]
+  DisLikes DisLikes[]
+  videoLikes VideoLikes[]
+  videoDislikes VideoDislikes[]
+  commentLikes CommentLikes[]
+  commentDisLikes CommentDisLikes[]
+  viewedBoard ViewedBoard?
+  votedBoard VotedBoard?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Activity {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type ActivityType
+  profileId String @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Board {
+  id String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title String
+  description String
+  hasVote Boolean @default(false)
+  registrationStatus Boolean @default(true)
+  videoPath String
+  viewedCount Int @default(0)
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @db.Uuid
+  mobs String[]
+  comments Comment[]
+  likes Likes[]
+  DisLikes DisLikes[]
+  likedCount Int @default(0)
+  dislikedCount Int @default(0)
+  viewedBoard ViewedBoard? @relation(fields: [viewedBoardId], references: [id])
+  viewedBoardId String? @db.Uuid
+  votedBoard VotedBoard? @relation(fields: [votedBoardId], references: [id])
+  votedBoardId String? @db.Uuid
+  category Category @relation(fields: [categoryId], references: [id])
+  categoryId String @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  vote Vote?
+}
+
+model Category {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scope String
+  file String?
+  boards Board[]
+}
+
+model Comment {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  content String
+  files String[]
+  parentComment Comment? @relation("CommentToComment", fields: [parentCommentId], references: [id])
+  parentCommentId String? @db.Uuid
+  replies Comment[] @relation("CommentToComment")
+  board Board @relation(fields: [boardId], references: [id])
+  boardId String @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @db.Uuid
+  commentLikes CommentLikes[]
+  commentDisLikes CommentDisLikes[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Video {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title String
+  description String
+  url String
+  uploaded_by Profile @relation(fields: [profileId], references: [id])
+  profileId String @db.Uuid
+  views Int @default(0)
+  likedCount Int @default(0)
+  dislikedCount Int @default(0)
+  videoLikes VideoLikes[]
+  VideoDislikes VideoDislikes[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Vote {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  board Board @relation(fields: [boardId], references: [id])
+  boardId String @unique @db.Uuid
+  voters Int @default(0)
+  voteOptions VoteOption[]
+  startTime DateTime
+  endTime DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VoteOption {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vote Vote @relation(fields: [voteId], references: [id])
+  count Int @default(0)
+  voteId String @db.Uuid
+  content String // 투표의 선택지
+  profileVoteOption ProfileVoteOption[]
+}
+
+model ProfileVoteOption {
+  profile     Profile     @relation(fields: [profileId], references: [id])
+  profileId  String      @db.Uuid
+  voteOption  VoteOption  @relation(fields: [voteOptionId], references: [id], onDelete: Cascade)
+  voteOptionId String    @db.Uuid
+
+  @@id([profileId, voteOptionId])
+  @@index([voteOptionId])
+}
+
+model Ads {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title String 
+  description String
+  imageUrl String
+  targetUrl String // 광고 클릭 시 이동할 URL
+  advertiser Advertiser @relation(fields: [advertiserId], references: [id])  
+  advertiserId String @db.Uuid // 광고주 ID 
+  startDate DateTime
+  endDate DateTime
+  status String
+  createdAt DateTime @default(now()) // 광고 생성날짜
+  updatedAt DateTime @updatedAt
+}
+
+model Advertiser {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name String
+  contactEmail String
+  contactPhone String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ads Ads[]
+}
+
+model ViewedBoard {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @unique @db.Uuid
+  boards Board[]
+}
+
+model VotedBoard {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  boards Board[]
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @unique @db.Uuid
+}
+
+model Likes {
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @db.Uuid
+  board Board @relation(fields: [boardId], references: [id])
+  boardId String @db.Uuid
+
+  @@id([profileId, boardId])
+  @@unique([profileId, boardId])
+  @@index([boardId])
+}
+
+model DisLikes {
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @db.Uuid
+  board Board @relation(fields: [boardId], references: [id])
+  boardId String @db.Uuid
+
+  @@id([profileId, boardId])
+  @@unique([profileId, boardId])
+  @@index([boardId])
+}
+
+model VideoLikes {
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @db.Uuid
+  video Video @relation(fields: [videoId], references: [id])
+  videoId String @db.Uuid
+
+  @@id([profileId, videoId])
+  @@unique([profileId, videoId])
+  @@index([videoId])
+}
+
+model VideoDislikes {
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @db.Uuid
+  video Video @relation(fields: [videoId], references: [id])
+  videoId String @db.Uuid
+
+  @@id([profileId, videoId])
+  @@unique([profileId, videoId])
+  @@index([videoId])
+}
+
+model CommentLikes {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @db.Uuid
+  comment Comment @relation(fields:[commentId], references: [id])
+  commentId String @db.Uuid
+
+  @@unique([profileId, commentId])
+  @@index([commentId])
+}
+
+model CommentDisLikes {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @db.Uuid
+  comment Comment @relation(fields:[commentId], references: [id])
+  commentId String @db.Uuid
+
+  @@unique([profileId, commentId])
+  @@index([commentId])
+}
