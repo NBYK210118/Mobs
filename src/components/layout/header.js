@@ -92,15 +92,15 @@ const Header = () => {
   const [showRecentBoard, setShowRecentBoard] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const { setSelectedSideBar } = useHeaderStore((state) => state);
-  const { token, setToken, setRefreshToken, clearTokens } = useUserState(
+  const { token, clearTokens } = useUserState(
     (state) => state
   );
   const { loginDiscord, loginGoogle, loginKakao } = useSupabaseOAuth();
   const [viewPostForm, setViewPostForm] = useState(false);
 
-  useEffect(() => {
-    syncTokenWithStore();
-  }, []);
+  useEffect(()=>{
+    syncTokenWithStore()
+  },[])
 
   const handleShowRecentBoards = (idx) => {
     if (idx === 0) {

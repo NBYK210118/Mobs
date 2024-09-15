@@ -9,9 +9,8 @@ import 'react-datepicker/dist/react-datepicker.css';
 import ImagePreview from '../image/ImagePreview';
 import formatBytes from '../../../utils/formatBytes';
 import ContentEditor from '../post/contentEditable';
-import { registerBoard } from '../../../services/boardService';
+import { registerBoard, temporarySaveBoard } from '../../../services/boardService';
 import useUserState from '../../../hooks/useUserState';
-import Draggable from 'react-draggable';
 
 const PostModal = ({ isOpen, onRequestClose, overlayClassName }) => {
   const { token, userId } = useUserState();
@@ -33,6 +32,7 @@ const PostModal = ({ isOpen, onRequestClose, overlayClassName }) => {
 
   const totalFileSize =
     imageFileSize.reduce((acc, val) => acc + val, 0) + videoFileSize.reduce((acc, val) => acc + val, 0);
+  
 
   useEffect(() => {
     const handleContentChange = () => {
@@ -74,9 +74,9 @@ const PostModal = ({ isOpen, onRequestClose, overlayClassName }) => {
     }
   }, [totalFileSize]);
 
-  useEffect(()=>{
-    console.log("html : ", html);
-  },[html])
+  // useEffect(()=>{
+  //   console.log("html : ", html);
+  // },[html])
 
   const handleClose = () => {
     onRequestClose();
@@ -96,7 +96,11 @@ const PostModal = ({ isOpen, onRequestClose, overlayClassName }) => {
     // const textTagValue = `<p>${eventValue}</p>`;
     // // console.log('e.target.value: ', e.target.value);
     // setHtml(textTagValue);
-    console.log('e.target.childNodes: ',contentEditable.current.childNodes);
+    // console.log('e.target.childNodes: ',typeof contentEditable.current.childNodes);
+    // const childNodes = contentEditable.current.childNodes;
+    // for(const node of childNodes){
+    //   console.log('node: ', node.TEXT_NODE);
+    // }
     setHtml(e.target.value);
     saveCursorPosition();
   };
@@ -112,7 +116,7 @@ const PostModal = ({ isOpen, onRequestClose, overlayClassName }) => {
       setCursorPosition(start);
     }
   };  
-
+    
   const insertHtmlAtCursor = (htmlToInsert) => {
     const originalHtml = contentEditable.current.innerHTML;
     const newHtml = originalHtml + htmlToInsert;
@@ -202,20 +206,48 @@ const PostModal = ({ isOpen, onRequestClose, overlayClassName }) => {
     setOpenPolls(checked);
   };
 
-  const saveContent = async () => {
-    const editableDiv = editableDiv.current;
-    const initialContent = editableDiv.innerHTML;
+  const checkTitleDescrip = () => {
+    const initialContent = contentEditable.current.innerHTML;
 
-    const result = await registerBoard({
-      title,
-      description: initialContent,
-      profileId: userId,
+    const titleCondition = (title === '' || title === undefined || title === null)
+    const descriptionCondition = (initialContent === '' || initialContent === undefined || initialContent === null)
+    console.log('title: ', title);
+    console.log('initialContent: ',initialContent);
+    if (titleCondition){
+      alert('게시물 제목을 입력해주세요');
+      return
+    }
+
+    if(descriptionCondition) {
+      alert('게시물 내용을 입력해주세요');
+      return
+    }
+  }
+
+  // 임시 저장 버튼 클릭
+  const saveContent = async () => {
+    const editableDivRef = contentEditable.current;
+    const initialContent = editableDivRef.innerHTML;
+
+    checkTitleDescrip();
+
+    const boardId = await temporarySaveBoard({
+      initialTitle:title, initialContent, profileId:userId,
     });
+
+    return boardId
   };
+
+  // 게시물 업로드 버튼 클릭
+
+  const boardUpload = async () => {
+    checkTitleDescrip();
+
+
+  }
 
   return (
     <>
-      <Draggable handle=".target_modal">
         <Modal
           isOpen={isOpen}
           onRequestClose={handleClose}
@@ -243,7 +275,7 @@ const PostModal = ({ isOpen, onRequestClose, overlayClassName }) => {
               >
                 임시 저장
               </button>
-              <button className="text-sm p-2 border border-gray-300 rounded hover:bg-gray-100">업로드</button>
+              <button className="text-sm p-2 border border-gray-300 rounded hover:bg-gray-100" onClick={()=>boardUpload()}>업로드</button>
             </div>
             <div className="col-span-6">
               <div className="flex items-center gap-3">
@@ -361,7 +393,6 @@ const PostModal = ({ isOpen, onRequestClose, overlayClassName }) => {
             </div>
           </div>
         </Modal>
-      </Draggable>
     </>
   );
 };

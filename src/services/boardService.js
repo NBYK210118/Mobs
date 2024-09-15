@@ -46,7 +46,7 @@ export const getBoardsByCategory = async ({ category }) => {
 };
 
 export const registerBoard = async ({ title, description, profileId }) => {
-  const { data, error } = await supabase.from('Board').insert({ title, description, profileId }).select('id').single();
+  const { data, error } = await supabase.from('Board').insert({ title, description, profileId, registrationStatus:true }).select('id').single();
   if (error) {
     console.log('게시물 등록 에러', error);
     return;
@@ -60,11 +60,12 @@ export const registerBoard = async ({ title, description, profileId }) => {
 export const temporarySaveBoard = async ({ initialTitle, initialContent, profileId }) => {
   const { data, error } = await supabase
     .from('Board')
-    .insert({ title: initialTitle, description: initialContent, registrationBoard: false, profileId })
+    .insert({ title: initialTitle, description: initialContent, registrationStatus: false, profileId, categoryId:1 })
     .select();
 
   if (error) {
     console.log('게시물 임시저장 중 에러: ', error);
+    return
   }
 
   if (data) {

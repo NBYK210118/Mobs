@@ -13,13 +13,14 @@ const useUserState = () => {
   } = useAuthStore((state) => state);
 
   useEffect(() => {
-    if (!token) {
-      const localStorageTokenValue = localStorage.getItem(
-        `sb-${process.env.REACT_APP_SUPABASE_PROJECTNAME}-auth-token`
-      );
-      if (localStorageTokenValue) setToken(localStorageTokenValue);
+    const localStorageTokenValue = localStorage.getItem(
+      `sb-${process.env.REACT_APP_SUPABASE_PROJECTNAME}-auth-token`
+    )
+
+    if (!token && localStorageTokenValue) {
+      setToken(localStorageTokenValue);
     }
-  }, []);
+  }, [token, setToken]);
 
   return {
     token,
